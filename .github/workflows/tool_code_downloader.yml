@@ -1,0 +1,37 @@
+name: Read File as JSON String
+
+on:
+  workflow_dispatch:
+    inputs:
+      file_path:
+        description: "Path to the file in repo"
+        required: true
+        default: "README.md"
+
+jobs:
+  stringify-file:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Convert file to JSON string
+        id: stringify
+        run: |
+          FILE="${{ github.event.inputs.file_path }}"
+
+          if [ ! -f "$FILE" ]; then
+            echo "File not found: $FILE"
+            exit 1
+          fi
+
+          # Convert file content to JSON string
+          JSON=$(jq -Rs . < "$FILE")
+
+          echo "json_content=$JSON" >> $GITHUB_OUTPUT
+
+      - name: Use output
+        run: |
+          echo "Stringified JSON:"
+          echo '${{ steps.stringify.outputs.json_content }}'
